@@ -1,18 +1,34 @@
 import { Link, useLocation } from "react-router";
+import { useEffect } from "react";
+import { getImageSrc } from "../lib/utilis";
 import useAuthUser from "../hooks/useAuthUser";
-import { ShipWheelIcon, HomeIcon, BellIcon, UserIcon } from "lucide-react";
+import useFriendStore from "../store/useFriendStore";
+import {
+  ShipWheelIcon,
+  HomeIcon,
+  BellIcon,
+  UserIcon,
+  BotIcon,
+} from "lucide-react";
 
 const Sidebar = () => {
   const { authUser } = useAuthUser();
+  const { friendRequests, getFriendRequests } = useFriendStore();
   const location = useLocation();
 
   const currentPath = location.pathname;
+
+  useEffect(() => {
+    if (authUser) {
+      getFriendRequests();
+    }
+  }, [getFriendRequests, authUser]);
 
   return (
     <aside className="w-64 bg-base-200 border-r border-base-300 hidden lg:flex flex-col h-screen sticky top-0">
       <div className="p-5 border-base-300">
         <Link to="/" className="flex items-center gap-2.5">
-          <ShipWheelIcon className="size-9 text-primary" />
+          <BotIcon className="size-9 text-primary" />
           <span className="text-3xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary tracking-wider">
             Chatbox
           </span>
@@ -40,7 +56,14 @@ const Sidebar = () => {
           to="/notifications"
           className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${currentPath === "/notifications" ? "btn-active" : ""}`}
         >
-          <BellIcon className="size-5 text-base-content opacity-70" />
+          <div className="relative">
+            <BellIcon className="size-5 text-base-content opacity-70" />
+            {friendRequests.length > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 size-4 bg-red-500 rounded-full flex items-center justify-center text-xs text-white">
+                {friendRequests.length}
+              </span>
+            )}
+          </div>
           <span>Notifications</span>
         </Link>
       </nav>
@@ -50,7 +73,7 @@ const Sidebar = () => {
         <div className="flex items-center gap-3">
           <div className="avatar">
             <div className="w-10 rounded-full">
-              <img src={authUser?.profilePic} alt="User Avatar" />
+              <img src={getImageSrc(authUser?.profilePic)} alt="User Avatar" />
             </div>
           </div>
           <div className="flex-1">

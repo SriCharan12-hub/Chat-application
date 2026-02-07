@@ -57,40 +57,56 @@ const NotificationsPage = () => {
                   {incomingReq.map((request) => (
                     <div
                       key={request._id}
-                      className="card bg-base-200 shadow-sm hover:shadow-md transition-shadow"
+                      className="card bg-base-100 shadow-md hover:shadow-lg transition-all duration-200"
                     >
                       <div className="card-body p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={request.sender.profilePic}
-                              alt={request.sender.FullName}
-                            />
+                        <div className="flex items-center gap-4">
+                          <div className="avatar">
+                            <div className="size-12 rounded-full">
+                              <img
+                                src={request.sender.profilePic || "/avatar.png"}
+                                alt={request.sender.FullName}
+                              />
+                            </div>
                           </div>
-                          <div>
-                            <h3 className="font-semibold">
+
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-lg truncate mb-1">
                               {request.sender.FullName}
                             </h3>
-                            <div className="flex flex-wrap gap-1.5 mt-1">
-                              <span className="badge badge-secondary badge-sm">
-                                Native: {request.sender.nativeLanguage}
-                              </span>
-                              <span className="badge badge-secondary badge-sm">
-                                Learning: {request.sender.learningLanguage}
-                              </span>
+                            <div className="flex flex-wrap gap-2">
+                              {request.sender.nativeLanguage && (
+                                <span className="badge badge-neutral text-xs px-2 py-1 h-auto">
+                                  Native: {request.sender.nativeLanguage}
+                                </span>
+                              )}
+                              {request.sender.learningLanguage && (
+                                <span className="badge badge-secondary text-xs px-2 py-1 h-auto">
+                                  Learning: {request.sender.learningLanguage}
+                                </span>
+                              )}
                             </div>
                           </div>
                         </div>
 
-                        <button
-                          className="btn btn-primary btn-sm"
-                          onClick={() =>
-                            acceptFriendRequestMutation(request._id)
-                          }
-                          disabled={isPending}
-                        >
-                          {isPending ? "Accepting..." : "Accept"}
-                        </button>
+                        <div className="mt-4 flex justify-end gap-2">
+                          <button
+                            className="btn btn-primary btn-sm flex-1"
+                            onClick={() =>
+                              acceptFriendRequestMutation(request._id)
+                            }
+                            disabled={isPending}
+                          >
+                            {isPending ? (
+                              <>
+                                <span className="loading loading-spinner loading-xs"></span>
+                                Accepting...
+                              </>
+                            ) : (
+                              "Accept Request"
+                            )}
+                          </button>
+                        </div>
                       </div>
                     </div>
                   ))}

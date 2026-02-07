@@ -32,7 +32,7 @@ export const registerUser = async (req,res) => {
         const hashedPassword = await bcrypt.hash(Password,10);
 
         const idx = Math.floor(Math.random() * 100) + 1;
-        const randomavatar = `https://avatar.iran.liara.run/public/${idx}.png`   
+        const randomavatar = `https://avatar.iran.liara.run/public/${idx}`;
 
         const newUser = await User.create({FullName,Email,Password:hashedPassword,profilePic:randomavatar});
 

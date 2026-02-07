@@ -1,11 +1,11 @@
 import React from "react";
 import useAuthUser from "../hooks/useAuthUser";
 import useLogout from "../hooks/useLogout";
-import { useQueryClient } from "@tanstack/react-query";
+// import { useQueryClient } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
 import { completeOnboarding } from "../lib/api";
 import { toast } from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import {
   CameraIcon,
   MapPinIcon,
@@ -19,8 +19,8 @@ import { LANGUAGES } from "../constants";
 const OnboardingPage = () => {
   const { isLoading, authUser } = useAuthUser();
   const { logoutMutation } = useLogout();
-  const queryClient = useQueryClient();
-  const navigate = useNavigate();
+  // const queryClient = useQueryClient();
+  // const navigate = useNavigate();
 
   const [formstate, setFormstate] = useState({
     FullName: authUser?.FullName || "",
@@ -31,24 +31,20 @@ const OnboardingPage = () => {
     profilePic: authUser?.profilePic || "",
   });
 
-  const {
-    mutate: onboardingMutation,
-    isPending,
-    error,
-  } = useMutation({
+  const {mutate: onboardingMutation,isPending,error,} = useMutation({
     mutationFn: completeOnboarding,
     onSuccess: () => {
       toast.success("Profile completed. Please login again.");
       logoutMutation();
     },
-    onError: (err) => {
-      toast.error(err?.response?.data?.message || "Something went wrong");
+    onError: (error) => {
+      toast.error(error?.response?.data?.message || "Something went wrong");
     },
   });
 
   const handleRandomAvatar = () => {
     const idx = Math.floor(Math.random() * 100) + 1;
-    const randomavatar = `https://avatar.iran.liara.run/public/${idx}.png`;
+    const randomavatar = `https://avatar.iran.liara.run/public/${idx}`;
     setFormstate({ ...formstate, profilePic: randomavatar });
     toast.success("Random Avatar Generated");
   };

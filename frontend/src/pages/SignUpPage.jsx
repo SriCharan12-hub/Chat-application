@@ -1,10 +1,11 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { ShipWheelIcon } from "lucide-react";
+import { ShipWheelIcon, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import useSignup from "../hooks/useSignup";
 
 const SignUpPage = () => {
+  const [showPassword, setShowPassword] = useState(false);
   const [signupData, setSignupData] = useState({
     FullName: "",
     Email: "",
@@ -29,7 +30,7 @@ const SignUpPage = () => {
           <div className="mb-4 flex  items-center justify-start gap-2">
             <ShipWheelIcon className="size-9 text-primary" />
             <span className="text-3xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary tracking-wider">
-              Streamify
+              ChatBox
             </span>
           </div>
 
@@ -106,19 +107,32 @@ const SignUpPage = () => {
                     <label className="label">
                       <span className="label-text">Password</span>
                     </label>
-                    <input
-                      type="password"
-                      placeholder="Enter your password"
-                      className="input input-bordered w-full"
-                      value={signupData.Password}
-                      onChange={(e) =>
-                        setSignupData({
-                          ...signupData,
-                          Password: e.target.value,
-                        })
-                      }
-                      required
-                    />
+                    <div className="relative">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        placeholder="Enter your password"
+                        className="input input-bordered w-full pr-10"
+                        value={signupData.Password}
+                        onChange={(e) =>
+                          setSignupData({
+                            ...signupData,
+                            Password: e.target.value,
+                          })
+                        }
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? (
+                          <EyeOff className="size-5 text-base-content/40" />
+                        ) : (
+                          <Eye className="size-5 text-base-content/40" />
+                        )}
+                      </button>
+                    </div>
                     <p className="text-xs opacity-70 mt-l">
                       Password must be atleast 6 characters long
                     </p>
@@ -175,7 +189,7 @@ const SignUpPage = () => {
             {/* illustration */}
             <div className="relative aspect-square max-w-sm mx-auto">
               <img
-                src="https://ik.imagekit.io/jpezrwaey/Video%20call-bro.png"
+                src="https://i.pinimg.com/736x/97/a6/46/97a646803836901b1a3c8f83bbff685c.jpg"
                 alt="Language connection"
                 className="w-full h-full"
               />

@@ -1,4 +1,5 @@
 import { LANGUAGE_TO_FLAG } from "../constants";
+import { getImageSrc } from "../lib/utilis";
 import { Link } from "react-router-dom";
 
 const FriendCard = ({ friend }) => {
@@ -8,7 +9,7 @@ const FriendCard = ({ friend }) => {
         {/* User Info */}
         <div className="flex items-center gap-3 mb-3">
           <div className="avatar size-12">
-            <img src={friend.profilePic} alt={friend.FullName} />
+            <img src={getImageSrc(friend.profilePic)} alt={friend.FullName} />
           </div>
           <h3 className="font-semibold truncate">{friend.FullName}</h3>
         </div>
