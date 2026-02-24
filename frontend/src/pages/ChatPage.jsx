@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getStreamToken } from "../lib/api";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Maximize, Minimize } from "lucide-react";
 import useAuthUser from "../hooks/useAuthUser";
 import {
   Channel,
@@ -24,6 +24,8 @@ const ChatPage = () => {
   const [chatClient, setChatClient] = useState(null);
   const [channel, setChannel] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isFullScreen, setIsFullScreen] = useState(false);
+  const chatContainerRef = useRef(null);
 
   const { authUser } = useAuthUser();
 
@@ -32,6 +34,31 @@ const ChatPage = () => {
     queryFn: getStreamToken,
     enabled: !!authUser, // run only when user available
   });
+
+  useEffect(() => {
+    const handleFullScreenChange = () => {
+      setIsFullScreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener("fullscreenchange", handleFullScreenChange);
+    return () => {
+      document.removeEventListener("fullscreenchange", handleFullScreenChange);
+    };
+  }, []);
+
+  const toggleFullScreen = () => {
+    if (!chatContainerRef.current) return;
+
+    if (!document.fullscreenElement) {
+      chatContainerRef.current.requestFullscreen().catch((err) => {
+        toast.error(
+          `Error attempting to enable full-screen mode: ${err.message}`,
+        );
+      });
+    } else {
+      document.exitFullscreen();
+    }
+  };
 
   useEffect(() => {
     const initChat = async () => {
@@ -72,7 +99,6 @@ const ChatPage = () => {
     };
     initChat();
   }, [tokenData, authUser, targetUserId]);
-
   const handleVideoCall = () => {
     if (channel) {
       const callUrl = `${window.location.origin}/call/${channel.id}`;
@@ -88,22 +114,40 @@ const ChatPage = () => {
   }
 
   return (
-    <div className="h-[93vh]">
-      <Chat client={chatClient}>
+    <div
+      className={`w-full ${isFullScreen ? "h-screen bg-base-100" : "h-[93vh]"} overflow-hidden`}
+      ref={chatContainerRef}
+    >
+      <Chat client={chatClient} theme="messaging light">
         <Channel channel={channel}>
-          <div className="w-full relative">
+          <div className="flex flex-col h-full w-full relative">
             <button
               onClick={() => navigate(-1)}
               className="absolute top-3 left-4 z-50 btn btn-ghost btn-circle"
             >
               <ArrowLeft className="size-6" />
             </button>
+            <div className="absolute top-1 right-16 z-50 flex gap-2">
+              <button
+                onClick={toggleFullScreen}
+                className="btn btn-ghost btn-circle"
+                title={isFullScreen ? "Exit Full Screen" : "Full Screen"}
+              >
+                {isFullScreen ? (
+                  <Minimize className="size-6" />
+                ) : (
+                  <Maximize className="size-6" />
+                )}
+              </button>
+            </div>
             <CallButton handleVideoCall={handleVideoCall} />
-            <Window>
-              <ChannelHeader />
-              <MessageList />
-              <MessageInput focus />
-            </Window>
+            <div className="flex-1 flex flex-col min-h-0">
+              <Window>
+                <ChannelHeader />
+                <MessageList />
+                <MessageInput focus />
+              </Window>
+            </div>
           </div>
           <Thread />
         </Channel>

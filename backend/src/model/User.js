@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema({
     FullName:{ type: String, required: true},
     Email:{ type: String, required: true, unique: true},
-    Password:{ type: String, required: true,minlength:6},
+    Password:{ type: String, minlength:6},
     bio:{type:String,default:""},
     profilePic:{type:String,default:""},
     nativeLanguage:{type:String,default:""},
@@ -18,7 +18,9 @@ const userSchema = new mongoose.Schema({
     
 
     
-    
+    otp:{type:String},
+    otpExpires:{type:Date},
+    isVerified:{type:Boolean,default:false},
 },
 {timestamps:true}
 )

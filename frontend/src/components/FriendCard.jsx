@@ -1,11 +1,41 @@
 import { LANGUAGE_TO_FLAG } from "../constants";
 import { getImageSrc } from "../lib/utilis";
 import { Link } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { removeFriend } from "../lib/api";
+import { toast } from "react-hot-toast";
+import { UserMinusIcon } from "lucide-react";
 
 const FriendCard = ({ friend }) => {
+  const queryClient = useQueryClient();
+
+  const { mutate: removeFriendMutation, isPending } = useMutation({
+    mutationFn: removeFriend,
+    onSuccess: () => {
+      toast.success("Friend removed successfully");
+      queryClient.invalidateQueries({ queryKey: ["friends"] });
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || "Something went wrong");
+    },
+  });
+
   return (
-    <div className="card bg-base-200 hover:shadow-md transition-shadow">
-      <div className="card-body p-4">
+    <div className="card bg-base-200 hover:shadow-md transition-all duration-200 group">
+      <div className="card-body p-4 relative">
+        <button
+          className="absolute top-2 right-2 btn btn-ghost btn-xs btn-circle text-error"
+          onClick={() => removeFriendMutation(friend._id)}
+          disabled={isPending}
+          title="Remove Friend"
+        >
+          {isPending ? (
+            <span className="loading loading-spinner loading-xs"></span>
+          ) : (
+            <UserMinusIcon className="size-4" />
+          )}
+        </button>
+
         {/* User Info */}
         <div className="flex items-center gap-3 mb-3">
           <div className="avatar size-12">

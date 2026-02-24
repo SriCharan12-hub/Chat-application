@@ -1,5 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getFriendRequests, acceptFriendRequest } from "../lib/api";
+import {
+  getFriendRequests,
+  acceptFriendRequest,
+  rejectFriendRequest,
+} from "../lib/api";
 import {
   BellIcon,
   MessageSquareIcon,
@@ -8,6 +12,7 @@ import {
 } from "lucide-react";
 import NoNotificationsFound from "../components/NoNotificationsFound";
 import PageLoader from "../components/pageLoader";
+import { toast } from "react-hot-toast";
 
 const NotificationsPage = () => {
   const queryClient = useQueryClient();
@@ -17,13 +22,30 @@ const NotificationsPage = () => {
     queryFn: getFriendRequests,
   });
 
-  const { mutate: acceptFriendRequestMutation, isPending } = useMutation({
-    mutationFn: acceptFriendRequest,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["friendRequests"] });
-      queryClient.invalidateQueries({ queryKey: ["friends"] });
-    },
-  });
+  const { mutate: acceptFriendRequestMutation, isPending: isAccepting } =
+    useMutation({
+      mutationFn: acceptFriendRequest,
+      onSuccess: () => {
+        toast.success("Friend request accepted");
+        queryClient.invalidateQueries({ queryKey: ["friendRequests"] });
+        queryClient.invalidateQueries({ queryKey: ["friends"] });
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.message || "Something went wrong");
+      },
+    });
+
+  const { mutate: rejectFriendRequestMutation, isPending: isRejecting } =
+    useMutation({
+      mutationFn: rejectFriendRequest,
+      onSuccess: () => {
+        toast.success("Friend request rejected");
+        queryClient.invalidateQueries({ queryKey: ["friendRequests"] });
+      },
+      onError: (error) => {
+        toast.error(error.response?.data?.message || "Something went wrong");
+      },
+    });
 
   const incomingReq = friendRequests?.incomingRequests || [];
   const acceptedReq = friendRequests?.acceptedRequests || [];
@@ -91,13 +113,29 @@ const NotificationsPage = () => {
 
                         <div className="mt-4 flex justify-end gap-2">
                           <button
+                            className="btn btn-outline btn-sm flex-1"
+                            onClick={() =>
+                              rejectFriendRequestMutation(request._id)
+                            }
+                            disabled={isAccepting || isRejecting}
+                          >
+                            {isRejecting ? (
+                              <>
+                                <span className="loading loading-spinner loading-xs"></span>
+                                Rejecting...
+                              </>
+                            ) : (
+                              "Reject"
+                            )}
+                          </button>
+                          <button
                             className="btn btn-primary btn-sm flex-1"
                             onClick={() =>
                               acceptFriendRequestMutation(request._id)
                             }
-                            disabled={isPending}
+                            disabled={isAccepting || isRejecting}
                           >
-                            {isPending ? (
+                            {isAccepting ? (
                               <>
                                 <span className="loading loading-spinner loading-xs"></span>
                                 Accepting...

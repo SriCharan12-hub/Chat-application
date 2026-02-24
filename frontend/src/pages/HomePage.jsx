@@ -20,8 +20,15 @@ import NoFriendsFound from "../components/NoFriendsFound";
 import { getLanguageFlag } from "../components/FriendCard";
 import { capitalize } from "../lib/utilis";
 
+import EditProfileModal from "../components/EditProfileModal";
+import useAuthUser from "../hooks/useAuthUser";
+import { Settings, User } from "lucide-react";
+
 const HomePage = () => {
   const queryClient = useQueryClient();
+  const { authUser } = useAuthUser();
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+
   const [outgoingRequestIds, setOutgoingRequestsIds] = useState(new Set());
   const { data: friends = [], isLoading: loadingFriends } = useQuery({
     queryKey: ["friends"],
@@ -62,6 +69,57 @@ const HomePage = () => {
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="container mx-auto space-y-10">
+        {/* Profile Section */}
+        {authUser && (
+          <div className="bg-base-200 rounded-xl p-6 flex flex-col sm:flex-row items-center gap-6 shadow-sm">
+            <div className="avatar size-24 rounded-full overflow-hidden">
+              <img
+                src={authUser.profilePic || "/avatar.png"}
+                alt={authUser.FullName}
+                className="object-cover w-full h-full"
+              />
+            </div>
+            <div className="flex-1 text-center sm:text-left space-y-2">
+              <h1 className="text-2xl font-bold">{authUser.FullName}</h1>
+              <p className="text-sm opacity-70">{authUser.bio}</p>
+              <div className="space-y-3">
+                {authUser.location && (
+                  <div className="flex items-center text-sm opacity-70 justify-center sm:justify-start">
+                    <MapPinIcon className="size-4 mr-1.5 text-primary" />
+                    {authUser.location}
+                  </div>
+                )}
+                <div className="flex flex-wrap justify-center sm:justify-start gap-2 text-xs">
+                  {authUser.nativeLanguage && (
+                    <span className="badge badge-secondary h-6 px-3">
+                      Native: {capitalize(authUser.nativeLanguage)}
+                    </span>
+                  )}
+                  {authUser.learningLanguage && (
+                    <span className="badge badge-outline h-6 px-3">
+                      Learning: {capitalize(authUser.learningLanguage)}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <button
+              className="btn btn-outline"
+              onClick={() => setIsEditProfileOpen(true)}
+            >
+              <Settings className="size-4 mr-2" />
+              Edit Profile
+            </button>
+          </div>
+        )}
+
+        {isEditProfileOpen && (
+          <EditProfileModal
+            authUser={authUser}
+            onClose={() => setIsEditProfileOpen(false)}
+          />
+        )}
+
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
             Your Friends

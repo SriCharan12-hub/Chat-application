@@ -13,6 +13,7 @@ import PageLoader from "./components/pageLoader.jsx";
 import useAuthUser from "./hooks/useAuthUser.js";
 import Layout from "./components/Layout.jsx";
 import useThemeStore from "./store/useThemeStore";
+import NotificationToastHandler from "./components/NotificationToastHandler.jsx";
 const App = () => {
   const { isLoading, authUser } = useAuthUser();
   const isAuthenticated = Boolean(authUser);
@@ -26,6 +27,7 @@ const App = () => {
   return (
     <>
       <div data-theme={theme}>
+        <NotificationToastHandler />
         <Routes>
           <Route
             path="/"

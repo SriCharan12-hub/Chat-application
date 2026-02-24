@@ -1,47 +1,29 @@
-import React from "react";
-import useAuthUser from "../hooks/useAuthUser";
-import useLogout from "../hooks/useLogout";
-// import { useQueryClient } from "@tanstack/react-query";
-import { useMutation } from "@tanstack/react-query";
-
-import { completeOnboarding } from "../lib/api";
+import React, { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { updateProfile } from "../lib/api";
 import { toast } from "react-hot-toast";
 import { NAME_REGEX, LOCATION_REGEX } from "../lib/utilis";
-// import { useNavigate } from "react-router-dom";
-import {
-  CameraIcon,
-  MapPinIcon,
-  ShipWheelIcon,
-  ShuffleIcon,
-  LoaderIcon,
-} from "lucide-react";
-import { useState } from "react";
+import { CameraIcon, LoaderIcon, ShipWheelIcon, X } from "lucide-react";
 import { LANGUAGES } from "../constants";
 
-const OnboardingPage = () => {
-  const { isLoading, authUser } = useAuthUser();
-  const { logoutMutation } = useLogout();
-  // const queryClient = useQueryClient();
-  // const navigate = useNavigate();
-
+const EditProfileModal = ({ authUser, onClose }) => {
+  const queryClient = useQueryClient();
+  const [previewImg, setPreviewImg] = useState(authUser?.profilePic || "");
   const [formstate, setFormstate] = useState({
     FullName: authUser?.FullName || "",
     bio: authUser?.bio || "",
     nativeLanguage: authUser?.nativeLanguage || "",
     learningLanguage: authUser?.learningLanguage || "",
     location: authUser?.location || "",
-    profilePic: authUser?.profilePic || "",
+    profilePic: null, // Only set if changed
   });
 
-  const {
-    mutate: onboardingMutation,
-    isPending,
-    error,
-  } = useMutation({
-    mutationFn: completeOnboarding,
+  const { mutate: updateProfileMutation, isPending } = useMutation({
+    mutationFn: updateProfile,
     onSuccess: () => {
-      toast.success("Profile completed. Please login again.");
-      logoutMutation();
+      toast.success("Profile updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["authUser"] });
+      onClose();
     },
     onError: (error) => {
       toast.error(error?.response?.data?.message || "Something went wrong");
@@ -64,36 +46,34 @@ const OnboardingPage = () => {
     }
   };
 
-  const [previewImg, setPreviewImg] = useState(authUser?.profilePic || "");
-
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formstate.bio.trim()) {
-      return toast.error("Bio cannot be empty");
-    }
-    if (!NAME_REGEX.test(formstate.FullName)) {
+    if (!formstate.bio.trim()) return toast.error("Bio cannot be empty");
+    if (!NAME_REGEX.test(formstate.FullName))
       return toast.error("Full Name must contain only alphabets and spaces");
-    }
-    if (!LOCATION_REGEX.test(formstate.location)) {
+    if (!LOCATION_REGEX.test(formstate.location))
       return toast.error(
         "Location must contain only alphabets, spaces and commas",
       );
-    }
 
-    onboardingMutation(formstate);
+    updateProfileMutation(formstate);
   };
 
   return (
-    <div className="min-h-screen bg-base-100 flex items-center justify-center p-4">
-      <div className="card bg-base-200 w-full max-w-3xl shadow-xl">
-        <div className="card-body p-6 sm:p-8">
-          <h1 className="text-2xl sm:text-3xl font-bold text-center mb-6">
-            Complete Your Profile
-          </h1>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+      <div className="bg-base-200 w-full max-w-2xl rounded-xl shadow-xl max-h-[90vh] overflow-y-auto">
+        <div className="p-6 relative">
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 btn btn-circle btn-sm btn-ghost"
+          >
+            <X className="size-5" />
+          </button>
+
+          <h2 className="text-2xl font-bold text-center mb-6">Edit Profile</h2>
+
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/*Profile Pic container */}
             <div className="flex flex-col items-center justify-center space-y-4">
-              {/* Image preview */}
               <div className="size-32 rounded-full bg-base-300 overflow-hidden relative group">
                 {previewImg ? (
                   <img
@@ -102,35 +82,33 @@ const OnboardingPage = () => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className=" flex items-center justify-center h-full">
+                  <div className="flex items-center justify-center h-full">
                     <CameraIcon className="size-12 text-base-content opacity-40" />
                   </div>
                 )}
                 <label
-                  htmlFor="profile-upload"
+                  htmlFor="edit-profile-upload"
                   className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                 >
                   <CameraIcon className="size-8 text-white" />
                 </label>
                 <input
                   type="file"
-                  id="profile-upload"
+                  id="edit-profile-upload"
                   className="hidden"
                   accept="image/*"
                   onChange={handleImageChange}
                 />
               </div>
-              <p className="text-sm opacity-70">Click to upload image</p>
+              <p className="text-sm opacity-70">Click to change image</p>
             </div>
 
-            {/*FUll name*/}
             <div className="form-control">
               <label className="label">
                 <span className="label-text">Full Name</span>
               </label>
               <input
                 type="text"
-                placeholder="Full Name"
                 className="input input-bordered w-full"
                 value={formstate.FullName}
                 onChange={(e) =>
@@ -139,13 +117,11 @@ const OnboardingPage = () => {
               />
             </div>
 
-            {/*Bio*/}
             <div className="form-control">
               <label className="label">
                 <span className="label-text">Bio</span>
               </label>
               <textarea
-                placeholder="Bio"
                 className="textarea textarea-bordered w-full"
                 value={formstate.bio}
                 onChange={(e) =>
@@ -154,15 +130,13 @@ const OnboardingPage = () => {
               ></textarea>
             </div>
 
-            {/* Languages */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/*Native Language*/}
               <div className="form-control">
                 <label className="label">
                   <span className="label-text">Native Language</span>
                 </label>
                 <select
-                  name="nativeLanguage"
+                  className="select select-bordered w-full"
                   value={formstate.nativeLanguage}
                   onChange={(e) =>
                     setFormstate({
@@ -170,24 +144,22 @@ const OnboardingPage = () => {
                       nativeLanguage: e.target.value,
                     })
                   }
-                  className="select select-bordered w-full"
                 >
-                  <option value="">Select Native Language</option>
+                  <option value="">Select Language</option>
                   {LANGUAGES.map((lang) => (
-                    <option key={`native-${lang}`} value={lang.toLowerCase()}>
+                    <option key={lang} value={lang.toLowerCase()}>
                       {lang}
                     </option>
                   ))}
                 </select>
               </div>
 
-              {/*Learning Language*/}
               <div className="form-control">
                 <label className="label">
                   <span className="label-text">Learning Language</span>
                 </label>
                 <select
-                  name="learningLanguage"
+                  className="select select-bordered w-full"
                   value={formstate.learningLanguage}
                   onChange={(e) =>
                     setFormstate({
@@ -195,11 +167,10 @@ const OnboardingPage = () => {
                       learningLanguage: e.target.value,
                     })
                   }
-                  className="select select-bordered w-full"
                 >
-                  <option value="">Select Learning Language</option>
+                  <option value="">Select Language</option>
                   {LANGUAGES.map((lang) => (
-                    <option key={`learning-${lang}`} value={lang.toLowerCase()}>
+                    <option key={lang} value={lang.toLowerCase()}>
                       {lang}
                     </option>
                   ))}
@@ -207,42 +178,33 @@ const OnboardingPage = () => {
               </div>
             </div>
 
-            {/*Location*/}
             <div className="form-control">
               <label className="label">
                 <span className="label-text">Location</span>
               </label>
-              <div className="relative">
-                <MapPinIcon className="absolute top-1/2 transform -translate-y-1/2 left-3 size-5 text-base-content opacity-70" />
-                <input
-                  type="text"
-                  placeholder="Location"
-                  className="input input-bordered w-full pl-10"
-                  value={formstate.location}
-                  onChange={(e) =>
-                    setFormstate({ ...formstate, location: e.target.value })
-                  }
-                />
-              </div>
+              <input
+                type="text"
+                className="input input-bordered w-full"
+                value={formstate.location}
+                onChange={(e) =>
+                  setFormstate({ ...formstate, location: e.target.value })
+                }
+              />
             </div>
 
-            {/*Submit BTN*/}
-            <div className="flex justify-center">
+            <div className="flex justify-center pt-4">
               <button
                 type="submit"
                 className="btn btn-primary w-full max-w-xs"
                 disabled={isPending}
               >
-                {!isPending ? (
+                {isPending ? (
                   <>
-                    <ShipWheelIcon className="size-5 mr-2" />
-                    Complete Onboarding
+                    <LoaderIcon className="animate-spin size-5 mr-2" />
+                    Updating...
                   </>
                 ) : (
-                  <>
-                    <LoaderIcon className=" animate-spin size-5 mr-2" />
-                    Onboarding...
-                  </>
+                  "Save Changes"
                 )}
               </button>
             </div>
@@ -253,4 +215,4 @@ const OnboardingPage = () => {
   );
 };
 
-export default OnboardingPage;
+export default EditProfileModal;
