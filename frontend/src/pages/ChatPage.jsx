@@ -120,30 +120,34 @@ const ChatPage = () => {
     >
       <Chat client={chatClient} theme="messaging light">
         <Channel channel={channel}>
-          <div className="flex flex-col h-full w-full relative">
-            <button
-              onClick={() => navigate(-1)}
-              className="absolute top-3 left-4 z-50 btn btn-ghost btn-circle"
-            >
-              <ArrowLeft className="size-6" />
-            </button>
-            <div className="absolute top-1 right-16 z-50 flex gap-2">
+          <div className="flex flex-col h-full w-full">
+            <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-base-300">
               <button
-                onClick={toggleFullScreen}
+                onClick={() => navigate(-1)}
                 className="btn btn-ghost btn-circle"
-                title={isFullScreen ? "Exit Full Screen" : "Full Screen"}
               >
-                {isFullScreen ? (
-                  <Minimize className="size-6" />
-                ) : (
-                  <Maximize className="size-6" />
-                )}
+                <ArrowLeft className="size-6" />
               </button>
+              <div className="flex-1">
+                <ChannelHeader />
+              </div>
+              <div className="flex items-center gap-1">
+                <CallButton handleVideoCall={handleVideoCall} />
+                <button
+                  onClick={toggleFullScreen}
+                  className="btn btn-ghost btn-circle"
+                  title={isFullScreen ? "Exit Full Screen" : "Full Screen"}
+                >
+                  {isFullScreen ? (
+                    <Minimize className="size-6" />
+                  ) : (
+                    <Maximize className="size-6" />
+                  )}
+                </button>
+              </div>
             </div>
-            <CallButton handleVideoCall={handleVideoCall} />
             <div className="flex-1 flex flex-col min-h-0">
               <Window>
-                <ChannelHeader />
                 <MessageList />
                 <MessageInput focus />
               </Window>
